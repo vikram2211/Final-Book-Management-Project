@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const isValidString = function (value) {
-  if (typeof value === 'undefined' || value === null) return false;
+  if (typeof value === "undefined" || value === null) return false;
   if (typeof value === "string" && value.trim().length === 0) return false;
   return true;
 };
@@ -23,15 +23,26 @@ const isValidRequestBody = function (value) {
 };
 
 const isValidISBN = function (value) {
-  return value === 13;
+  return /^\d{13}$/.test(value);
 };
 
 const isValidRating = function (value) {
-  return (value) => 1 && value <= 5;
+  // return (value) => 1 && value <= 5;
+  return /^[1-5]$/.test(value);
 };
+
+// const isValidReview = function (value) {
+//   return (value) => 1 && value <= 5;
+// };
 
 const isNumber = function (value) {
   return isNan(value);
+};
+
+const isValidReview = function (value) {
+  if (typeof value !== "string" || value === null) return false;
+  if (typeof value === "string" && value.trim().length === 0) return false;
+  return true;
 };
 
 module.exports = {
@@ -43,4 +54,5 @@ module.exports = {
   isValidRequestBody,
   isValidRating,
   isNumber,
+  isValidReview,
 };

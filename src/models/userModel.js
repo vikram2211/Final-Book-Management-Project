@@ -39,7 +39,6 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      trim: true,
       minlength: 8,
       maxlength: 15,
     },
@@ -53,4 +52,4 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports.userModel = mongoose.model("User", userSchema); //Collection Name- users.
+module.exports = mongoose.model("User", userSchema); //Collection Name- users.

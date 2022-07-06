@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const route = require("./Routes/route");
+const route = require("./routes/route");
 
 const app = express();
 
@@ -18,6 +18,8 @@ mongoose
 )
 .then(() => {
   console.log("MongoDB Connected.");
+}).then(() => {
+  console.log("Hi");
 })
 .catch((err) => {
   console.log(err);

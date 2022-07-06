@@ -39,7 +39,7 @@ const booksSchema = new mongoose.Schema(
     },
 
     subcategory: {
-      type: String,     //BOTH: "string" & "array".
+      type: [String],     //BOTH: "string" & "array".
       required: true,
       trim: true,
     },
@@ -58,13 +58,21 @@ const booksSchema = new mongoose.Schema(
 
     deletedAt: {
       type: Date,
-    //   default: null,
+      default: "",    //null or "" ?
+    },
+
+    //// ASk if isReleased included? 
+    isReleased: {
+      type: Boolean,
+      default: false,
     },
 
     releasedAt: {
       type: Date,
       required: true,
-      default: "",          
+      default: new Date(),
+      // new Date().toISOString().slice(0,10),
+      // ('yyyy-MM-dd'),          
       //   format: "YYYY-MM-DD",
       match: /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
     },
@@ -72,4 +80,4 @@ const booksSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports.booksModel = mongoose.model("Book", booksSchema); //Collection Name- books.
+module.exports = mongoose.model("Book", booksSchema); //Collection Name- books.
