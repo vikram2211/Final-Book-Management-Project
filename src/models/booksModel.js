@@ -58,19 +58,19 @@ const booksSchema = new mongoose.Schema(
 
     deletedAt: {
       type: Date,
-      default: "",    //null or "" ?
+      default: null,    //null or "" ?
     },
 
-    //// ASk if isReleased included? 
-    isReleased: {
-      type: Boolean,
-      default: false,
-    },
+    // //// ASk if isReleased included? 
+    // isReleased: { ///all released by default.
+    //   type: Boolean,
+    //   default: false,
+    // },
 
     releasedAt: {
       type: Date,
       required: true,
-      default: new Date(),
+      // default: new Date(),
       // new Date().toISOString().slice(0,10),
       // ('yyyy-MM-dd'),          
       //   format: "YYYY-MM-DD",

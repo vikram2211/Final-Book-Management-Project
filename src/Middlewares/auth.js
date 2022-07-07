@@ -18,7 +18,7 @@ const auth = async (req, res, next) => {
       .send({ status: false, message: "Invalid Token.", });
     }
 
-    req.decodedToken = decodedToken;
+    // req.decodedToken = decodedToken;
     // return res
     //   .status(200)
     //   .send({ status: true, message: "Success", data: "auth" });
