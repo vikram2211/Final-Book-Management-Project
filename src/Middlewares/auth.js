@@ -1,47 +1,119 @@
 const jwt = require("jsonwebtoken");
+const userModel = require("../models/userModel");
+const booksModel = require("../models/booksModel");
+const validator = require("../utils/validator");
 
-const auth = async (req, res, next) => {
+/*--------------------------------------------------------------------------------*/
+//                            1. Authentication
+/*--------------------------------------------------------------------------------*/
+
+const authentication = async (req, res, next) => {
   try {
-    console.log("Authentication");
-
-    const token = req.headers["x-api-key"] ;
-    if(!token) {
+    const token = req.headers["x-api-key"];
+    if (!token) {
       return res
-      .status(400)
-      .send({ status: false, message: "Token must be present.", });
+        .status(400)
+        .send({ status: false, message: "Token must be present." });
     }
 
-    const decodedToken = jwt.verify( token, "thisIsTheSecretKeyForToken(@#$%^&*)" );
-    if(!decodedToken) {
-      return res
-      .status(401)
-      .send({ status: false, message: "Invalid Token.", });
+    const decodedToken = jwt.verify(
+      token,
+      "thisIsTheSecretKeyForToken(@#$%^&*)",{ignoreExpiration: true}
+    );
+    // const decodedToken = jwt.verify(
+    //   token,
+    //   "thisIsTheSecretKeyForToken(@#$%^&*)"
+    // );
+
+    // console.log(decodedToken);
+    if (!decodedToken) {
+      return res.status(401).send({ status: false, message: "Invalid Token." });
     }
 
-    // req.decodedToken = decodedToken;
-    // return res
-    //   .status(200)
-    //   .send({ status: true, message: "Success", data: "auth" });
+    req.decodedToken = decodedToken;
+    //!!(401) if(exp > currentTime(Date.now)).
 
+    // console.log(decodedToken);
+
+    //IF User Authenticateded then Call <next()>.
     next();
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
 };
 
-// const authorisation = async (req, res, next) => {
-//   try {
-//     console.log("Authorisation");
-//     // return res
-//     //   .status(200)
-//     //   .send({ status: true, message: "Success", data: "auth" });
+/*--------------------------------------------------------------------------------*/
+//                            2. Authorisation.
+/*--------------------------------------------------------------------------------*/
 
-//     next();
-//   } catch (error) {
-//     return res.status(500).send({ status: false, message: error.message });
-//   }
-// };
+const authorisation = async (req, res, next) => {
+  try {
+    // const token = req.headers["x-api-key"];
+    // const decodedToken = jwt.verify(
+    //   token,
+    //   "thisIsTheSecretKeyForToken(@#$%^&*)"
+    // );
+
+    console.log(req.decodedToken);
+
+    //Validation - If Request-Body has <userId>.
+    if (req.body.userId) {
+      //Validate that <userId> is a Valid Mongoose ObjectId.
+      if (!validator.isValidObjectId(req.body.userId)) {
+        return res.status(400).send({
+          status: false,
+          message: "UserID NOT a Valid Mongoose ObjectId.",
+        });
+      }
+
+      if (req.decodedToken.userId !== req.body.userId) {
+        return res.status(403).send({
+          status: false,
+          message:
+            "Unauthorised Access: You CANNOT Create Books By using other User's ID (in Request-Body).",
+        });
+      }
+    }
+
+    //Validation - If Request-Params has <bookId>.
+    if (req.params.bookId) {
+      //Validate that <bookId> is a Valid Mongoose ObjectId.
+      if (!validator.isValidObjectId(req.params.bookId)) {
+        return res.status(400).send({
+          status: false,
+          message: "UserID NOT a Valid Mongoose ObjectId.",
+        });
+      }
+
+      //Find Books with <filter>.
+      const bookFound = await booksModel.findOne({ _id: req.params.bookId });
+
+      //Error: NO Books Found.
+      if (!bookFound) {
+        return res.status(404).send({
+          status: false,
+          message: `NO Books Found having <bookId: ${req.params.bookId}>.`,
+        });
+      }
+
+      //Verify User.
+      if (req.decodedToken.userId !== bookFound.userId.toString()) {
+        return res.status(403).send({
+          status: false,
+          message:
+            "Unauthorised Access: You CANNOT <Edit: Update OR Delete> Books of other Users.",
+        });
+      }
+    }
+
+    //IF User Authorised then Call <next()>.
+    next();
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+};
 
 module.exports = {
-  auth,
+  authentication,
+  authorisation,
 };

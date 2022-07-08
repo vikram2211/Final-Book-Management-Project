@@ -31,10 +31,6 @@ const isValidRating = function (value) {
   return /^[1-5]$/.test(value);
 };
 
-// const isValidReview = function (value) {
-//   return (value) => 1 && value <= 5;
-// };
-
 const isNumber = function (value) {
   return isNan(value);
 };

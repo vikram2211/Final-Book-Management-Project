@@ -12,15 +12,30 @@ router.post("/register", userController.createUser);
 router.post("/login", userController.userLogin);
 
 //Books APIs.
-router.post("/books",  booksController.createBook);   //midW.auth,
+router.post(
+  "/books",
+  midW.authentication,
+  midW.authorisation,
+  booksController.createBook
+); //midW.auth,
 
-router.get("/books",  booksController.getBooks);
+router.get("/books", midW.authentication, booksController.getBooks);
 
-router.get("/books/:bookId",  booksController.getBookById);
+router.get("/books/:bookId", midW.authentication, booksController.getBookById);
 
-router.put("/books/:bookId",  booksController.updateBookById);
+router.put(
+  "/books/:bookId",
+  midW.authentication,
+  midW.authorisation,
+  booksController.updateBookById
+);
 
-router.delete("/books/:bookId",  booksController.deleteBookById);
+router.delete(
+  "/books/:bookId",
+  midW.authentication,
+  midW.authorisation,
+  booksController.deleteBookById
+);
 
 //Reviews APIs.
 router.post("/books/:bookId/review", reviewsController.createReview);

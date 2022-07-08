@@ -39,7 +39,7 @@ const createUser = async (req, res) => {
     //TITLE Validation.
     if(!validator.isValidString(title)) {
       // console.log("Title correct");
-      return res.status(400).send({ status: false, message: "Invalid TITLE ." });
+      return res.status(400).send({ status: false, message: "Please enter a Valid  TITLE ." });
     }
     if(!validator.isValidTitle(title)) {
       return res.status(400).send({ status: false, message: "TITLE can ONLY be <Mr>, <Mrs> or <Miss>." })
@@ -48,7 +48,7 @@ const createUser = async (req, res) => {
     //NAME Validation.
     if(!validator.isValidString(name)) {
       // console.log("Title correct");
-      return res.status(400).send({ status: false, message: "Invalid NAME." });
+      return res.status(400).send({ status: false, message: "Please enter Valid NAME." });
     }
     if(!/^[a-zA-Z ]*$/.test(name)) {
       return res.status(400).send({ status: false, message: "NAME can ONLY be Alphabets & White-space(s)." });
@@ -56,7 +56,7 @@ const createUser = async (req, res) => {
 
      //PHONE Validation.
      if(!validator.isValidString(phone)) {
-      return res.status(400).send({ status: false, message: "Invalid PHONE." });
+      return res.status(400).send({ status: false, message: "Please enter a Valid PHONE Number." });
     }
     if(!/^[6-9]\d{9}$/.test(phone)) {
       return res.status(400).send({ status: false, message: "PHONE can ONLY be 10-Digit Indian(start with <6,7,8 or 9>) Numbers." });
@@ -68,7 +68,7 @@ const createUser = async (req, res) => {
 
      //EMAIL Validation.
      if(!validator.isValidString(email)) {
-      return res.status(400).send({ status: false, message: "Invalid EMAIL." });
+      return res.status(400).send({ status: false, message: "Please enter a Valid  EMAIL." });
     }
     if(!emailValidator.isEmail(email)) {
       return res.status(400).send({ status: false, message: "Invalid EMAIL Format." });
@@ -80,27 +80,27 @@ const createUser = async (req, res) => {
 
     //PASSWORD Validation.
     if(!validator.isValidString(password)) {
-      return res.status(400).send({ status: false, message: "Invalid PASSWORD." });
+      return res.status(400).send({ status: false, message: "Please enter a Valid  PASSWORD." });
     }
     if(!validator.isValidPassword(password)) {
-      return res.status(400).send({ status: false, message: "Invalid PASSWORD Length (between 8 & 15 characters ONLY)." });
+      return res.status(400).send({ status: false, message: "Invalid PASSWORD Length: Password must be <8 to 15> characters ONLY." });
     }
 
      //ADDRESS Validation.
     if(!validator.isValidString(street)) {
-      return res.status(400).send({ status: false, message: "Invalid STREET." });
+      return res.status(400).send({ status: false, message: "Please enter a Valid STREET." });
     }
     if(!/^[a-zA-Z0-9\/\- ]*$/.test(street)) {
       return res.status(400).send({ status: false, message: "STREET can be Alphabets, Hyphen(-), Forward-slash(/), Numbers & White-space(s) ONLY." });
     }
     if(!validator.isValidString(city)) {
-      return res.status(400).send({ status: false, message: "Invalid CITY." });
+      return res.status(400).send({ status: false, message: "Please enter a Valid CITY." });
     }
     if(!/^[a-zA-Z\- ]*$/.test(city)) {
       return res.status(400).send({ status: false, message: "CITY can be Alphabets, Hyphen(-) & White-space(s) ONLY." });
     }
     if(!validator.isValidString(pincode)) {
-      return res.status(400).send({ status: false, message: "Invalid PINCODE." });
+      return res.status(400).send({ status: false, message: "Please enter a Valid PINCODE." });
     }
     if(!/^[1-9]\d{5}$/.test(pincode)) {
       return res.status(400).send({ status: false, message: "PINCODE can ONLY be 6-Digit Indian (cannot start with <0>) Numbers." });
@@ -130,13 +130,21 @@ const userLogin = async (req, res) => {
     }
     const { email, password } = requestBody ;
 
+     // Error: Unnecessary Data in Request-Body.
+    if (Object.keys(requestBody).length > 2) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid Request: ONLY <email> & <password> are required.",
+      });
+    }
+
      //EMAIL Validation.
      if(!validator.isValidString(email)) {
-      return res.status(400).send({ status: false, message: "EMAIL NOT a Valid String." });
+      return res.status(400).send({ status: false, message: "Please enter a Valid EMAIL ID." });
     }
     //PASSWORD Validation.
     if(!validator.isValidString(password)) {
-      return res.status(400).send({ status: false, message: "PASSWORD NOT a Valid String." });
+      return res.status(400).send({ status: false, message: "Please enter a Valid PASSWORD." });
     }
 
     const userMatch = await userModel.findOne({ email: email, password: password });
@@ -147,10 +155,16 @@ const userLogin = async (req, res) => {
       });
     }
 
+    // const token = jwt.sign({
+    //   email: userMatch.email,
+    //   iat: Math.floor( Date.now() / 1000 ),
+    //   exp: Math.floor( Date.now() / 1000 ) + 3*60*60,   //Expire in 3 Hours.
+    // }, "thisIsTheSecretKeyForToken(@#$%^&*)" );
+
     const token = jwt.sign({
-      email: userMatch.email,
+      userId: userMatch._id,
       iat: Math.floor( Date.now() / 1000 ),
-      exp: Math.floor( Date.now() / 1000 ) + 10*60,   //Expire in 10 minutes.
+      exp: Math.floor( Date.now() / 1000 ) + 3*60*60,   //Expire in 3 Hours(3*60*60).
     }, "thisIsTheSecretKeyForToken(@#$%^&*)" );
 
     return res

@@ -13,7 +13,7 @@ const createBook = async (req, res) => {
     if (Object.keys(requestBody).length === 0) {
       return res.status(400).json({
         status: false,
-        message: "Invalid Request. Please input data in the body.",
+        message: "Invalid Request. Please input requestBody in the body.",
       });
     }
 
@@ -173,7 +173,7 @@ const createBook = async (req, res) => {
     const bookData = await booksModel.create(requestBody);
     return res
       .status(201)
-      .send({ status: true, message: "Success", data: bookData });
+      .send({ status: true, message: "Success", requestBody: bookData });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -182,8 +182,30 @@ const createBook = async (req, res) => {
 /*------------------------------------------------------------------------------------------------------------------ 2. API - GET BOOKS. -------------------------------------------------------------------------------------*/
 const getBooks = async (req, res) => {
   try {
+    // console.log(req.body);
+
     const { userId, category, subcategory } = req.query;
 
+    if (Object.keys(req.query).length === 0) {
+      //Find All the Books in Database.
+      const allBooks = await booksModel
+        .find()
+        .select({
+          title: 1,
+          excerpt: 1,
+          userId: 1,
+          category: 1,
+          releasedAt: 1,
+          reviews: 1,
+        })
+        .sort({ title: 1 });
+
+      return res.status(200).send({
+        status: true,
+        message: "Found All Books in Database Successfully.",
+        requestBody: allBooks,
+      });
+    }
     //UserID Validation.
     if (userId) {
       if (!validator.isValidObjectId(userId)) {
@@ -240,8 +262,8 @@ const getBooks = async (req, res) => {
 
     return res.status(200).send({
       status: true,
-      message: "Found All Books Successfully.",
-      data: allBooks,
+      message: "Found All Books according to Queries, Successfully.",
+      requestBody: allBooks,
     });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -286,7 +308,7 @@ const getBookById = async (req, res) => {
     return res.status(200).send({
       status: true,
       message: "Book Found Successfully.",
-      data: finalData,
+      requestBody: finalData,
     });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -298,6 +320,11 @@ const updateBookById = async (req, res) => {
   try {
     const bookId = req.params.bookId;
 
+    if (!bookId)
+      return res
+        .status(400)
+        .send({ status: false, message: "BookId NOT Provided." });
+
     if (!validator.isValidObjectId(bookId)) {
       return res.status(400).send({
         status: false,
@@ -306,57 +333,110 @@ const updateBookById = async (req, res) => {
     }
 
     //Find Book by <bookId>.
-    let bookDeleted = await booksModel.findOne({
+    let searchBook = await booksModel.findOne({
       _id: bookId,
       isDeleted: false,
     });
-    if (!bookDeleted) {
-      return res
-        .status(404)
-        .send({ status: false, message: "Book NOT Found." });
-    }
+    if (!searchBook)
+      return res.status(404).send({
+        status: false,
+        message: `Book does not exist by this <${bookId}>.`,
+      });
 
-    let requestBody = req.body;
+    const requestBody = req.body;
     // Error: No Data in Request-Body.
     if (Object.keys(requestBody).length === 0) {
       return res.status(400).json({
         status: false,
-        message: "Invalid Request. Please input data in the body.",
+        message: "Invalid Request. Please input requestBody in the body.",
       });
     }
 
-    //Get Book Details (to Update) from req.body
-    let { title, excerpt, releasedAt, ISBN } = requestBody;
+    const { title, excerpt, ISBN, releasedAt } = requestBody;
 
-    //Filter.
-    let filter;
-
-    //Update Review.
-    if (title && excerpt && releasedAt && ISBN) {
-      filter = { title, excerpt, releasedAt, ISBN };
-    } else if (title && excerpt && releasedAt) {
-      filter = { title, excerpt, releasedAt };
-    } else if (title && excerpt && ISBN) {
-      filter = { title, excerpt, ISBN };
-    } else if (title && releasedAt && ISBN) {
-      filter = { title, releasedAt, ISBN };
-    } else if (excerpt && releasedAt && ISBN) {
-      filter = { excerpt, releasedAt, ISBN };
-    } else if (excerpt && releasedAt) {
-      filter = { excerpt, releasedAt };
-    } else if (excerpt && ISBN) {
-      filter = { excerpt, ISBN };
-    } else if (title && excerpt) {
-      filter = { excerpt, title };
-    } else if (excerpt && releasedAt && ISBN) {
-      filter = { excerpt, releasedAt, ISBN };
+    if (!(title || excerpt || ISBN || releasedAt)) {
+      return res.status(400).json({
+        status: false,
+        message:
+          "Invalid Request: Please input atleast one of < title, excerpt, ISBN OR releasedAt> in the requestBody.",
+      });
     }
 
-    return res
-      .status(200)
-      .send({ status: true, message: "Success", data: "updateBookById" });
-  } catch (error) {
-    return res.status(500).send({ status: false, message: error.message });
+    //TITLE Validation.
+    if (title) {
+      if (!validator.isValidString(title)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Invalid TITLE." });
+      }
+    }
+
+    //EXCERPT Validation.
+    if (excerpt) {
+      if (!validator.isValidString(excerpt)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Invalid EXCERPT." });
+      }
+    }
+
+    //ISBN Validation.
+    if (ISBN) {
+      if (!validator.isValidISBN(ISBN)) {
+        return res.status(400).send({
+          status: false,
+          message: "Invalid ISBN: length 13 Digits ONLY.",
+        });
+      }
+    }
+
+    //releasedAt Validation.
+    if (releasedAt) {
+      if (!validator.isValidString(releasedAt)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Invalid ReleasedAt." });
+      }
+      // REGEX.
+      if (!validator.isValidDate(releasedAt)) {
+        return res.status(400).send({
+          status: false,
+          message: "Invalid Format: ReleasedAt can ONLY be (YYYY-MM-DD).",
+        });
+      }
+    }
+
+    //Different checkUnique...............
+    if (
+      requestBody.hasOwnProperty("title") ||
+      requestBody.hasOwnProperty("ISBN")
+    ) {
+      let checkTitleAndIsbn = await booksModel.findOne({
+        $or: [{ title: requestBody.title }, { ISBN: requestBody.ISBN }],
+      });
+      if (checkTitleAndIsbn)
+        return res
+          .status(400)
+          .send({ status: false, message: "<Title> or <ISBN> already exist." });
+    }
+
+    let changeDetails = await booksModel.findOneAndUpdate(
+      { _id: bookId },
+      {
+        title: requestBody.title,
+        excerpt: requestBody.excerpt,
+        releasedAt: requestBody.releasedAt,
+        ISBN: requestBody.ISBN,
+      },
+      { new: true }
+    );
+    res.status(200).send({
+      status: true,
+      message: "Successfully updated book details.",
+      requestBody: changeDetails,
+    });
+  } catch (err) {
+    return res.status(500).send({ status: false, Error: err.message });
   }
 };
 
@@ -387,7 +467,7 @@ const deleteBookById = async (req, res) => {
     return res.status(200).send({
       status: true,
       message: "Deleted Book Successfully.",
-      data: bookDeleted,
+      requestBody: bookDeleted,
     });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
