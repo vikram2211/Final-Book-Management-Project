@@ -3,7 +3,10 @@ const reviewsModel = require("../models/reviewsModel");
 const booksModel = require("../models/booksModel");
 const validator = require("../utils/validator");
 
-/*------------------------------------------------------------------------------------------------------------ 1. API - CREATE A REVIEW BY BOOK-ID. ------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+//                           1. API - CREATE A REVIEW BY BOOK-ID.
+/*--------------------------------------------------------------------------------*/
+
 const createReview = async (req, res) => {
   try {
     const bookId = req.params.bookId;
@@ -35,13 +38,13 @@ const createReview = async (req, res) => {
       });
     }
 
-    if(requestBody.isDeleted == true  || requestBody.isDeleted == "true" ) {
+    if (requestBody.isDeleted == true || requestBody.isDeleted == "true") {
       return res.status(400).json({
         status: false,
-        message: "Invalid Request: <isDeleted : true>. Cannot Create and Delete Review at the same time.",
+        message:
+          "Invalid Request: <isDeleted : true>. Cannot Create and Delete Review at the same time.",
       });
     }
-    
 
     let { reviewedBy, review, rating } = requestBody;
 
@@ -65,7 +68,7 @@ const createReview = async (req, res) => {
     if (!validator.isValidRating(rating)) {
       return res.status(400).send({
         status: false,
-        message: "Invalid RATING: NUMBER between 1 to 5 ONLY.",
+        message: "RATING Required(NUMBER between 1 to 5 ONLY).",
       });
     }
 
@@ -73,7 +76,7 @@ const createReview = async (req, res) => {
     if (!validator.isValidReview(review)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid REVIEW." });
+        .send({ status: false, message: "Please enter a valid REVIEW." });
     }
 
     //Increase Review-Count in Book's Document.
@@ -96,7 +99,9 @@ const createReview = async (req, res) => {
   }
 };
 
-/*---------------------------------------------------------------------------------------------------------- 2. API - UPDATE A REVIEW OF BOOK BY REVIEW-ID. -------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+//                           2. API - UPDATE A REVIEW OF BOOK BY REVIEW-ID.
+/*--------------------------------------------------------------------------------*/
 
 const updateReview = async (req, res) => {
   try {
@@ -227,7 +232,9 @@ const updateReview = async (req, res) => {
   }
 };
 
-/*---------------------------------------------------------------------------------------------------------- 3. API - DELETE A REVIEW OF BOOK BY REVIEW-ID. -------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+//                           3. API - DELETE A REVIEW OF BOOK BY REVIEW-ID.
+/*--------------------------------------------------------------------------------*/
 
 const deleteReviewById = async (req, res) => {
   try {
@@ -257,14 +264,15 @@ const deleteReviewById = async (req, res) => {
       });
     }
 
-    let requestBody = req.body;
-    // Error: No Data in Request-Body.
-    if (Object.keys(requestBody).length === 0) {
-      return res.status(400).json({
-        status: false,
-        message: "Invalid Request. Please input data in the body.",
-      });
-    }
+    //???????????????????
+    // let requestBody = req.body;
+    // // Error: No Data in Request-Body.
+    // if (Object.keys(requestBody).length === 0) {
+    //   return res.status(400).json({
+    //     status: false,
+    //     message: "Invalid Request. Please input data in the body.",
+    //   });
+    // }
 
     //Find Book by BookID.
     const bookFound = await booksModel.findOne({
@@ -295,7 +303,7 @@ const deleteReviewById = async (req, res) => {
         _id: bookId,
         isDeleted: false,
       },
-      { $inc: { reviews:-1 } },
+      { $inc: { reviews: -1 } },
       { new: true }
     );
 

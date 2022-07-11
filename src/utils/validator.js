@@ -23,8 +23,11 @@ const isValidRequestBody = function (value) {
 };
 
 const isValidISBN = function (value) {
-  return /^\d{13}$/.test(value);
+  return /^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/.test(value);
 };
+// const isValidISBN = function (value) {
+//   return /^\d{13}$/.test(value);
+// };
 
 const isValidRating = function (value) {
   // return (value) => 1 && value <= 5;
@@ -42,7 +45,7 @@ const isValidReview = function (value) {
 };
 
 const isValidDate = function (value) {
-  return /((20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01]))|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|[12][0-9]|30))|((20)[0-9]{2}[-](02)[-](0[1-9]|1[0-9]|2[0-8]))|((((20)(04|08|[2468][048]|[13579][26]))|2000)[-](02)[-]29)/g.test(value);
+  return /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/.test(value);
 };
 
 module.exports = {

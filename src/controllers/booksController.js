@@ -1,10 +1,13 @@
 // const mongoose = require("mongoose");
+const moment = require("moment");
 const booksModel = require("../models/booksModel");
 const userModel = require("../models/userModel");
 const validator = require("../utils/validator");
 const reviewsModel = require("../models/reviewsModel");
 
-/*------------------------------------------------------------------------------------------------------------------ 1. API - CREATE A BOOK. -------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+//                            1. API - Create a Book.
+/*--------------------------------------------------------------------------------*/
 const createBook = async (req, res) => {
   try {
     const requestBody = req.body;
@@ -24,7 +27,7 @@ const createBook = async (req, res) => {
     if (!validator.isValidString(userId)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid UserID." });
+        .send({ status: false, message: "Please enter a Valid UserID." });
     }
     if (!validator.isValidObjectId(userId)) {
       return res.status(400).send({
@@ -41,7 +44,9 @@ const createBook = async (req, res) => {
 
     //TITLE Validation.
     if (!validator.isValidString(title)) {
-      return res.status(400).send({ status: false, message: "Invalid TITLE." });
+      return res
+        .status(400)
+        .send({ status: false, message: "Please enter a Valid TITLE." });
     }
     const titleUnique = await booksModel.findOne({ title: title });
     if (titleUnique) {
@@ -54,7 +59,7 @@ const createBook = async (req, res) => {
     if (!validator.isValidString(excerpt)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid EXCERPT." });
+        .send({ status: false, message: "Please enter a Valid EXCERPT." });
     }
 
     //ISBN Validation.
@@ -66,7 +71,7 @@ const createBook = async (req, res) => {
     if (!validator.isValidISBN(ISBN)) {
       return res.status(400).send({
         status: false,
-        message: "Invalid ISBN: length 13 Digits ONLY.",
+        message: "Please enter a Valid ISBN(length 13 Digits ONLY).",
       });
     }
     const ISBNUnique = await booksModel.findOne({ ISBN: ISBN });
@@ -80,7 +85,7 @@ const createBook = async (req, res) => {
     if (!validator.isValidString(category)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid CATEGORY." });
+        .send({ status: false, message: "Please enter a Valid CATEGORY." });
     }
     if (!/^[a-zA-Z0-9\- ]*$/.test(category)) {
       return res.status(400).send({
@@ -143,31 +148,22 @@ const createBook = async (req, res) => {
     } else {
       return res
         .status(400)
-        .send({ status: false, msg: "SUBCATEGORY Missing in Body." });
+        .send({ status: false, msg: "Please enter a Valid SUBCATEGORY." });
     }
 
     //releasedAt Validation.
     if (!validator.isValidString(releasedAt)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "Invalid ReleasedAt." });
+      return res.status(400).send({
+        status: false,
+        message: "Please enter a Valid <releasedAt>(Date).",
+      });
     }
-    // if (!/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/.test(releasedAt)) {
     if (!validator.isValidDate(releasedAt)) {
       return res.status(400).send({
         status: false,
         message: "Invalid Format: ReleasedAt can ONLY be (YYYY-MM-DD).",
       });
     }
-
-    //...........
-
-    //REVIEWS Validation.
-    // if (!validator.isNumber(reviews)) {
-    //   return res
-    //     .status(400)
-    //     .send({ status: false, message: "Invalid REVIEWS." });
-    // }
 
     //Create Book Document.
     const bookData = await booksModel.create(requestBody);
@@ -179,7 +175,9 @@ const createBook = async (req, res) => {
   }
 };
 
-/*------------------------------------------------------------------------------------------------------------------ 2. API - GET BOOKS. -------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+//                            2. API - GET BOOKS.
+/*--------------------------------------------------------------------------------*/
 const getBooks = async (req, res) => {
   try {
     // console.log(req.body);
@@ -189,7 +187,7 @@ const getBooks = async (req, res) => {
     if (Object.keys(req.query).length === 0) {
       //Find All the Books in Database.
       const allBooks = await booksModel
-        .find()
+        .find({ isDeleted: false })
         .select({
           title: 1,
           excerpt: 1,
@@ -198,6 +196,7 @@ const getBooks = async (req, res) => {
           releasedAt: 1,
           reviews: 1,
         })
+        .collation({ locale: "en", strength: 2 })
         .sort({ title: 1 });
 
       return res.status(200).send({
@@ -251,6 +250,7 @@ const getBooks = async (req, res) => {
         releasedAt: 1,
         reviews: 1,
       })
+      .collation({ locale: "en", strength: 2 })
       .sort({ title: 1 });
 
     //Error: NO Books Found.
@@ -270,7 +270,10 @@ const getBooks = async (req, res) => {
   }
 };
 
-/*-------------------------------------------------------------------------------------------------------------- 3. API - GET BOOK BY ID. -------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+//                            3. API - GET BOOK BY ID.
+/*--------------------------------------------------------------------------------*/
+
 const getBookById = async (req, res) => {
   try {
     const bookId = req.params.bookId;
@@ -315,22 +318,25 @@ const getBookById = async (req, res) => {
   }
 };
 
-/*-------------------------------------------------------------------------------------------------------------- 4. API - UPDATE BOOK BY ID. -------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+//                            4. API - UPDATE BOOK BY ID.
+/*--------------------------------------------------------------------------------*/
+
 const updateBookById = async (req, res) => {
   try {
     const bookId = req.params.bookId;
 
-    if (!bookId)
-      return res
-        .status(400)
-        .send({ status: false, message: "BookId NOT Provided." });
+    // if (!bookId)
+    //   return res
+    //     .status(400)
+    //     .send({ status: false, message: "BookId NOT Provided." });
 
-    if (!validator.isValidObjectId(bookId)) {
-      return res.status(400).send({
-        status: false,
-        message: "BookID NOT a Valid Mongoose ObjectId.",
-      });
-    }
+    // if (!validator.isValidObjectId(bookId)) {
+    //   return res.status(400).send({
+    //     status: false,
+    //     message: "BookID NOT a Valid Mongoose ObjectId.",
+    //   });
+    // }
 
     //Find Book by <bookId>.
     let searchBook = await booksModel.findOne({
@@ -367,7 +373,7 @@ const updateBookById = async (req, res) => {
       if (!validator.isValidString(title)) {
         return res
           .status(400)
-          .send({ status: false, message: "Invalid TITLE." });
+          .send({ status: false, message: "Please enter a Valid TITLE." });
       }
     }
 
@@ -376,7 +382,7 @@ const updateBookById = async (req, res) => {
       if (!validator.isValidString(excerpt)) {
         return res
           .status(400)
-          .send({ status: false, message: "Invalid EXCERPT." });
+          .send({ status: false, message: "Please enter a Valid EXCERPT." });
       }
     }
 
@@ -406,19 +412,40 @@ const updateBookById = async (req, res) => {
       }
     }
 
+    //Same checkUnique...............
+    // if (
+    //   requestBody.hasOwnProperty("title") ||
+    //   requestBody.hasOwnProperty("ISBN")
+    // ) {
+    //   let checkTitleAndIsbn = await booksModel.findOne({
+    //     $or: [{ title: requestBody.title }, { ISBN: requestBody.ISBN }],
+    //   });
+    //   if (checkTitleAndIsbn)
+    //     return res
+    //       .status(400)
+    //       .send({ status: false, message: "<Title> or <ISBN> already exist." });
+    // }
+
     //Different checkUnique...............
-    if (
-      requestBody.hasOwnProperty("title") ||
-      requestBody.hasOwnProperty("ISBN")
-    ) {
-      let checkTitleAndIsbn = await booksModel.findOne({
-        $or: [{ title: requestBody.title }, { ISBN: requestBody.ISBN }],
+    if (requestBody.hasOwnProperty("title")) {
+      let checkTitle = await booksModel.findOne({
+        title: requestBody.title,
       });
-      if (checkTitleAndIsbn)
+      if (checkTitle)
         return res
           .status(400)
-          .send({ status: false, message: "<Title> or <ISBN> already exist." });
+          .send({ status: false, message: "<Title> already exist." });
     }
+    if (requestBody.hasOwnProperty("ISBN")) {
+      let checkIsbn = await booksModel.findOne({
+        ISBN: requestBody.ISBN,
+      });
+      if (checkIsbn)
+        return res
+          .status(400)
+          .send({ status: false, message: "<ISBN> already exist." });
+    }
+    //........................
 
     let changeDetails = await booksModel.findOneAndUpdate(
       { _id: bookId },
@@ -440,17 +467,20 @@ const updateBookById = async (req, res) => {
   }
 };
 
-/*-------------------------------------------------------------------------------------------------------------- 5. API - DELETE BOOK BY ID. -------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+//                            5. API - DELETE BOOK BY ID.
+/*--------------------------------------------------------------------------------*/
+
 const deleteBookById = async (req, res) => {
   try {
     const bookId = req.params.bookId;
 
-    if (!validator.isValidObjectId(bookId)) {
-      return res.status(400).send({
-        status: false,
-        message: "BookID NOT a Valid Mongoose ObjectId.",
-      });
-    }
+    // if (!validator.isValidObjectId(bookId)) {
+    //   return res.status(400).send({
+    //     status: false,
+    //     message: "BookID NOT a Valid Mongoose ObjectId.",
+    //   });
+    // }
 
     //Find Book by <bookId>.
     let bookDeleted = await booksModel.findOneAndUpdate(
@@ -461,7 +491,7 @@ const deleteBookById = async (req, res) => {
     if (!bookDeleted) {
       return res
         .status(404)
-        .send({ status: false, message: "Book NOT Found." });
+        .send({ status: false, message: "Book NOT Found(Already Deleted)." });
     }
 
     return res.status(200).send({

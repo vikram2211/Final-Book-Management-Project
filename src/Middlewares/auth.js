@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const userModel = require("../models/userModel");
+// const userModel = require("../models/userModel");
 const booksModel = require("../models/booksModel");
 const validator = require("../utils/validator");
 
@@ -16,27 +16,34 @@ const authentication = async (req, res, next) => {
         .send({ status: false, message: "Token must be present." });
     }
 
-    const decodedToken = jwt.verify(
-      token,
-      "thisIsTheSecretKeyForToken(@#$%^&*)",{ignoreExpiration: true}
-    );
     // const decodedToken = jwt.verify(
     //   token,
-    //   "thisIsTheSecretKeyForToken(@#$%^&*)"
+    //   "thisIsTheSecretKeyForToken(@#$%^&*)",{ignoreExpiration: true}
     // );
 
+    jwt.verify(
+      token,
+      "thisIsTheSecretKeyForToken(@#$%^&*)",
+      (err, decodedToken) => {
+        if (err) {
+          return res.status(401).send({ status: false, message: err.message });
+        }
+        req.decodedToken = decodedToken;
+        next();
+      }
+    );
+
     // console.log(decodedToken);
-    if (!decodedToken) {
-      return res.status(401).send({ status: false, message: "Invalid Token." });
-    }
+    // if (!decodedToken) {
+    //   return res.status(401).send({ status: false, message: "Invalid Token." });
+    // }
 
-    req.decodedToken = decodedToken;
     //!!(401) if(exp > currentTime(Date.now)).
-
     // console.log(decodedToken);
 
     //IF User Authenticateded then Call <next()>.
-    next();
+    // req.decodedToken = decodedToken;
+    // next();
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -54,7 +61,7 @@ const authorisation = async (req, res, next) => {
     //   "thisIsTheSecretKeyForToken(@#$%^&*)"
     // );
 
-    console.log(req.decodedToken);
+    // console.log(req.decodedToken);
 
     //Validation - If Request-Body has <userId>.
     if (req.body.userId) {
@@ -81,12 +88,16 @@ const authorisation = async (req, res, next) => {
       if (!validator.isValidObjectId(req.params.bookId)) {
         return res.status(400).send({
           status: false,
-          message: "UserID NOT a Valid Mongoose ObjectId.",
+          message: "BookID NOT a Valid Mongoose ObjectId.",
         });
       }
 
       //Find Books with <filter>.
       const bookFound = await booksModel.findOne({ _id: req.params.bookId });
+      // const bookFound = await booksModel.findOne({
+      //   _id: req.params.bookId,
+      //   isDeleted: false,
+      // });
 
       //Error: NO Books Found.
       if (!bookFound) {

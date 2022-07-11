@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
       unique: true,
-      match: /^[6-9]\d{9}$/,   //Start with <6,7,8,9> & 10-Digits.
+      match: /^[6-9]\d{9}$/, //Start with <6,7,8,9> & 10-Digits.
     },
 
     email: {
@@ -44,9 +44,9 @@ const userSchema = new mongoose.Schema(
     },
 
     address: {
-      street: { type: String, trim: true, required: true },
-      city: { type: String, trim: true, required: true },
-      pincode: { type: String, trim: true, required: true },
+      street: { type: String, trim: true },
+      city: { type: String, trim: true },
+      pincode: { type: String, trim: true },
     },
   },
   { timestamps: true }

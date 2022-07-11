@@ -19,7 +19,7 @@ const booksSchema = new mongoose.Schema(
     userId: {
       type: ObjectId,
       required: true,
-      trim: true, //////
+      trim: true,
       ref: "User",
     },
 
@@ -28,8 +28,8 @@ const booksSchema = new mongoose.Schema(
       required: true,
       trim: true,
       unique: true,
-      minlength: 13,
-      maxlength: 13,
+      // minlength: 13,
+      // maxlength: 13,
     },
 
     category: {
@@ -39,7 +39,7 @@ const booksSchema = new mongoose.Schema(
     },
 
     subcategory: {
-      type: [String],     //BOTH: "string" & "array".
+      type: [String],   
       required: true,
       trim: true,
     },
@@ -58,23 +58,13 @@ const booksSchema = new mongoose.Schema(
 
     deletedAt: {
       type: Date,
-      default: null,    //null or "" ?
+      default: null,   
     },
-
-    // //// ASk if isReleased included? 
-    // isReleased: { ///all released by default.
-    //   type: Boolean,
-    //   default: false,
-    // },
 
     releasedAt: {
       type: Date,
       required: true,
-      // default: new Date(),
-      // new Date().toISOString().slice(0,10),
-      // ('yyyy-MM-dd'),          
-      //   format: "YYYY-MM-DD",
-      match: /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
+      // match: /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
     },
   },
   { timestamps: true }
