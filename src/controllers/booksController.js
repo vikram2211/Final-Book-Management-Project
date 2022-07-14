@@ -5,6 +5,11 @@ const userModel = require("../models/userModel");
 const validator = require("../utils/validator");
 const reviewsModel = require("../models/reviewsModel");
 
+
+
+
+
+
 /*--------------------------------------------------------------------------------*/
 //                            1. API - Create a Book.
 /*--------------------------------------------------------------------------------*/
@@ -22,6 +27,8 @@ const createBook = async (req, res) => {
 
     const { title, excerpt, userId, ISBN, category, subcategory, releasedAt } =
       requestBody;
+
+
 
     //UserID Validation.
     if (!validator.isValidString(userId)) {
@@ -497,7 +504,7 @@ const deleteBookById = async (req, res) => {
     return res.status(200).send({
       status: true,
       message: "Deleted Book Successfully.",
-      requestBody: bookDeleted,
+    
     });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });

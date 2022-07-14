@@ -310,7 +310,7 @@ const deleteReviewById = async (req, res) => {
     return res.status(200).send({
       status: true,
       message: "Review Deleted Successfully.",
-      data: reviewFound,
+      
     });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
